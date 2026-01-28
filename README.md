@@ -61,6 +61,15 @@ clawdbot plugins install -l ./dingtalk-moltbot-connector
       "enableMediaUpload": true,          // 可选：图片上传（默认开启）
       "systemPrompt": "",                 // 可选：自定义 system prompt
     }
+  },
+  "gateway": {
+    "http": {
+       "endpoints": {
+          "chatCompletions": {
+          "enabled": true
+        }
+      }
+    }
   }
 }
 ```
