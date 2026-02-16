@@ -52,14 +52,14 @@ graph LR
 openclaw plugins install @dingtalk-real-ai/dingtalk-connector
 
 # 或通过 Git 安装
-openclaw plugins install https://github.com/DingTalk-Real-AI/dingtalk-moltbot-connector.git
+openclaw plugins install https://github.com/DingTalk-Real-AI/dingtalk-openclaw-connector.git
 
 # 升级插件
 openclaw plugins update dingtalk-connector
 
 # 或本地开发模式
-git clone https://github.com/DingTalk-Real-AI/dingtalk-moltbot-connector.git
-cd dingtalk-moltbot-connector
+git clone https://github.com/DingTalk-Real-AI/dingtalk-openclaw-connector.git
+cd dingtalk-openclaw-connector
 npm install
 openclaw plugins install -l .
 ```
@@ -141,7 +141,7 @@ openclaw plugins list  # 确认 dingtalk-connector 已加载
 ## 项目结构
 
 ```
-dingtalk-moltbot-connector/
+dingtalk-openclaw-connector/
 ├── plugin.ts              # 插件入口
 ├── openclaw.plugin.json   # 插件清单
 ├── package.json           # npm 依赖
@@ -287,7 +287,7 @@ openclaw gateway start
 
 ### 第三步：启动 Connector 客户端
 
-1. 从 [Releases](https://github.com/hoskii/dingtalk-moltbot-connector/releases/tag/v0.0.1) 页面下载适配您操作系统的安装包
+1. 从 [Releases](https://github.com/hoskii/dingtalk-openclaw-connector/releases/tag/v0.0.1) 页面下载适配您操作系统的安装包
 2. 解压并运行 Connector（以 macOS 为例）：
 
    ```bash
