@@ -18,10 +18,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DingTalk-Real-AI/dingtalk-openclaw-connector.git"
+    "url": "git+https://github.com/ogenes/dingtalk-openclaw-connector.git"
   },
-  "homepage": "https://github.com/DingTalk-Real-AI/dingtalk-openclaw-connector#readme",
-  "bugs": "https://github.com/DingTalk-Real-AI/dingtalk-openclaw-connector/issues",
+  "homepage": "https://github.com/ogenes/dingtalk-openclaw-connector#readme",
+  "bugs": "https://github.com/ogenes/dingtalk-openclaw-connector/issues",
   "publishConfig": {
     "access": "public"
   },

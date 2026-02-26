@@ -52,13 +52,13 @@ graph LR
 openclaw plugins install @dingtalk-real-ai/dingtalk-connector
 
 # 或通过 Git 安装
-openclaw plugins install https://github.com/DingTalk-Real-AI/dingtalk-openclaw-connector.git
+openclaw plugins install https://github.com/ogenes/dingtalk-openclaw-connector.git
 
 # 升级插件
 openclaw plugins update dingtalk-connector
 
 # 或本地开发模式
-git clone https://github.com/DingTalk-Real-AI/dingtalk-openclaw-connector.git
+git clone https://github.com/ogenes/dingtalk-openclaw-connector.git
 cd dingtalk-openclaw-connector
 npm install
 openclaw plugins install -l .
@@ -123,6 +123,8 @@ openclaw plugins list  # 确认 dingtalk-connector 已加载
 
 ## 配置参考
 
+### 单账号配置（向后兼容）
+
 | 配置项 | 环境变量 | 说明 |
 |--------|----------|------|
 | `clientId` | `DINGTALK_CLIENT_ID` | 钉钉 AppKey |
@@ -130,6 +132,37 @@ openclaw plugins list  # 确认 dingtalk-connector 已加载
 | `gatewayToken` | `OPENCLAW_GATEWAY_TOKEN` | Gateway 认证 token（可选） |
 | `gatewayPassword` | — | Gateway 认证 password（可选，与 token 二选一） |
 | `sessionTimeout` | — | 会话超时时间，单位毫秒（默认 1800000 = 30分钟） |
+
+### 多账号配置
+
+支持配置多个钉钉机器人账号，每个账号可独立设置参数：
+
+```json5
+{
+  "channels": {
+    "dingtalk-connector": {
+      "enabled": true,
+      "accounts": {
+        "robot1": {
+          "name": "客服机器人",
+          "clientId": "dingxxx1",
+          "clientSecret": "secret1"
+        },
+        "robot2": {
+          "name": "通知机器人",
+          "clientId": "dingxxx2",
+          "clientSecret": "secret2"
+        }
+      }
+    }
+  }
+}
+```
+
+**说明：**
+- `accounts` 对象的 key 是账号 ID（如 `robot1`、`robot2`）
+- 每个账号支持完整的单账号配置参数
+- 多账号配置与单账号配置**不能同时使用**，配置了 `accounts` 后将忽略根级别的 `clientId` 和 `clientSecret`
 
 ## 会话命令
 

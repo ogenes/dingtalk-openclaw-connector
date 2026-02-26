@@ -140,6 +140,15 @@ function getConfig(cfg: ClawdbotConfig) {
 
 function isConfigured(cfg: ClawdbotConfig): boolean {
   const config = getConfig(cfg);
+
+  // 优先检查多账号配置
+  if (config.accounts && Object.keys(config.accounts).length > 0) {
+    return Object.values(config.accounts).some(acc =>
+      Boolean(acc.clientId && acc.clientSecret),
+    );
+  }
+
+  // 向后兼容：检查根配置
   return Boolean(config.clientId && config.clientSecret);
 }
 
@@ -2215,8 +2224,29 @@ const dingtalkPlugin = {
         gatewayPassword: { type: 'string', default: '', description: 'Gateway auth password (alternative to token)' },
         sessionTimeout: { type: 'number', default: 1800000, description: 'Session timeout in ms (default 30min)' },
         debug: { type: 'boolean', default: false },
+        accounts: {
+          type: 'object',
+          additionalProperties: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', description: '账号名称' },
+              enabled: { type: 'boolean', default: true },
+              clientId: { type: 'string', description: 'DingTalk App Key (Client ID)' },
+              clientSecret: { type: 'string', description: 'DingTalk App Secret (Client Secret)' },
+              enableMediaUpload: { type: 'boolean', default: true, description: 'Enable media upload prompt injection' },
+              systemPrompt: { type: 'string', default: '', description: 'Custom system prompt' },
+              dmPolicy: { type: 'string', enum: ['open', 'pairing', 'allowlist'], default: 'open' },
+              allowFrom: { type: 'array', items: { type: 'string' }, description: 'Allowed sender IDs' },
+              groupPolicy: { type: 'string', enum: ['open', 'allowlist'], default: 'open' },
+              gatewayToken: { type: 'string', default: '', description: 'Gateway auth token (Bearer)' },
+              gatewayPassword: { type: 'string', default: '', description: 'Gateway auth password (alternative to token)' },
+              sessionTimeout: { type: 'number', default: 1800000, description: 'Session timeout in ms (default 30min)' },
+              debug: { type: 'boolean', default: false },
+            },
+            required: ['clientId', 'clientSecret'],
+          },
+        },
       },
-      required: ['clientId', 'clientSecret'],
     },
     uiHints: {
       enabled: { label: 'Enable DingTalk' },
@@ -2229,16 +2259,28 @@ const dingtalkPlugin = {
   config: {
     listAccountIds: (cfg: ClawdbotConfig) => {
       const config = getConfig(cfg);
-      return config.accounts
-        ? Object.keys(config.accounts)
-        : (isConfigured(cfg) ? ['default'] : []);
+      if (config.accounts && Object.keys(config.accounts).length > 0) {
+        // 只返回已配置的账号（有 clientId 和 clientSecret）
+        return Object.entries(config.accounts)
+          .filter(([_, acc]) => acc.clientId && acc.clientSecret)
+          .map(([id]) => id);
+      }
+      return isConfigured(cfg) ? ['default'] : [];
     },
     resolveAccount: (cfg: ClawdbotConfig, accountId?: string) => {
       const config = getConfig(cfg);
-      const id = accountId || 'default';
-      if (config.accounts?.[id]) {
-        return { accountId: id, config: config.accounts[id], enabled: config.accounts[id].enabled !== false };
+
+      // 如果配置了 accounts，优先从 accounts 中解析
+      if (config.accounts && Object.keys(config.accounts).length > 0) {
+        const id = accountId || 'default';
+        if (config.accounts[id]) {
+          return { accountId: id, config: config.accounts[id], enabled: config.accounts[id].enabled !== false };
+        }
+        // accounts 存在但找不到指定账号，返回 null 表示账号不存在
+        return null;
       }
+
+      // 向后兼容：使用根配置
       return { accountId: 'default', config, enabled: config.enabled !== false };
     },
     defaultAccountId: () => 'default',
@@ -2261,7 +2303,7 @@ const dingtalkPlugin = {
     }),
   },
   groups: {
-    resolveRequireMention: ({ cfg }: any) => getConfig(cfg).groupPolicy !== 'open',
+    resolveRequireMention: ({ account }: any) => account.config?.groupPolicy !== 'open',
   },
   messaging: {
     // 注意：normalizeTarget 接收字符串，返回字符串（保持大小写，因为 openConversationId 是 base64 编码）
@@ -2525,8 +2567,8 @@ const plugin = {
       const { userId, userIds, content, msgType, title, useAICard, fallbackToNormal, accountId } = params || {};
       const account = dingtalkPlugin.config.resolveAccount(cfg, accountId);
 
-      if (!account.config?.clientId) {
-        return respond(false, { error: 'DingTalk not configured' });
+      if (!account?.config?.clientId) {
+        return respond(false, { error: 'DingTalk account not found or not configured' });
       }
 
       const targetUserIds = userIds || (userId ? [userId] : []);
@@ -2563,8 +2605,8 @@ const plugin = {
       const { openConversationId, content, msgType, title, useAICard, fallbackToNormal, accountId } = params || {};
       const account = dingtalkPlugin.config.resolveAccount(cfg, accountId);
 
-      if (!account.config?.clientId) {
-        return respond(false, { error: 'DingTalk not configured' });
+      if (!account?.config?.clientId) {
+        return respond(false, { error: 'DingTalk account not found or not configured' });
       }
 
       if (!openConversationId) {
@@ -2603,8 +2645,8 @@ const plugin = {
 
       log?.info?.(`[DingTalk][Send] 收到请求: params=${JSON.stringify(params)}`);
 
-      if (!account.config?.clientId) {
-        return respond(false, { error: 'DingTalk not configured' });
+      if (!account?.config?.clientId) {
+        return respond(false, { error: 'DingTalk account not found or not configured' });
       }
 
       if (!target) {
