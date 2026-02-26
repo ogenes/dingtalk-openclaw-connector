@@ -2057,7 +2057,7 @@ async function handleDingTalkMessage(params: {
 
     let accumulated = '';
     let lastUpdateTime = 0;
-    const updateInterval = 300; // 最小更新间隔 ms
+    const updateInterval = 150; // 最小更新间隔 ms（更流畅的流式效果）
     let chunkCount = 0;
 
     try {
@@ -2091,6 +2091,18 @@ async function handleDingTalkMessage(params: {
       }
 
       log?.info?.(`[DingTalk] Gateway 流完成，共 ${chunkCount} chunks, ${accumulated.length} 字符`);
+
+      // 【关键修复】流式结束后立即更新一次 AI Card，确保最后的内容被显示
+      // 避免节流导致最后几个 chunk 没有被更新到卡片上
+      const finalDisplayContent = accumulated
+        .replace(FILE_MARKER_PATTERN, '')
+        .replace(VIDEO_MARKER_PATTERN, '')
+        .replace(AUDIO_MARKER_PATTERN, '')
+        .trim();
+      if (finalDisplayContent) {
+        log?.info?.(`[DingTalk][AICard] 流式结束，立即更新最终内容: ${finalDisplayContent.length} 字符`);
+        await streamAICard(card, finalDisplayContent, false, log);
+      }
 
       // 后处理01：上传本地图片到钉钉，替换 file:// 路径为 media_id
       log?.info?.(`[DingTalk][Media] 开始图片后处理，内容片段="${accumulated.slice(0, 200)}..."`);
